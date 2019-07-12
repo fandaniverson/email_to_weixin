@@ -88,7 +88,6 @@ def print_info(msg,indent=0):
                 if header=='Subject':
                     # 需要解码Subject字符串:
                     value = decode_str(value).replace(' ','')
-                    print(value)
                     if value!=again:
                         if ('故障' in value or '失败' in value) and ('中六医院' in value or '中大六院' in value):
                             response=send_error('中六问题反馈群',value)
@@ -98,36 +97,8 @@ def print_info(msg,indent=0):
                             else:
                                 print(response['BaseResponse']['ErrMsg'])
                 else:
-                    # 需要解码Email地址:
-                    hdr, addr = parseaddr(value)
-                    name = decode_str(hdr)
-                    value = u'%s <%s>' % (name, addr)
-#            print('%s%s: %s' % ('  ' * indent, header, value))
-    if (msg.is_multipart()):
-        # 如果邮件对象是一个MIMEMultipart,
-        # get_payload()返回list，包含所有的子对象:
-        parts = msg.get_payload()
-        for n, part in enumerate(parts):
-#            print('%spart %s' % ('  ' * indent, n))
-#            print('%s--------------------' % ('  ' * indent))
-            # 递归打印每一个子对象:
-            print_info(part, indent + 1)
-    else:
-        # 邮件对象不是一个MIMEMultipart,
-        # 就根据content_type判断:
-        content_type = msg.get_content_type()
-        if content_type=='text/plain' or content_type=='text/html':
-            # 纯文本或HTML内容:
-            content = msg.get_payload(decode=True)
-            # 要检测文本编码:
-            charset = guess_charset(msg)
-            if charset:
-                content = content.decode(charset)
-#            print('%sText: %s' % ('  '+str(indent),str(content) + '...'))
-        else:
-            print('ok')
-            # 不是文本,作为附件处理:
-#            print('%sAttachment: %s' % ('  ' * indent, content_type))
+                    print('非法邮件')
+
 if __name__=='__main__':
     try:
         login_weixin()
@@ -135,17 +106,11 @@ if __name__=='__main__':
         print('login failure')
         time.sleep(60)
         login_weixin()
-    try:
-        server=connect_popserver()
-    except:
-        print('connect failure')
-        time.sleep(60)
-        server=connect_popserver()
     while True:
         try:
+            server=connect_popserver()
             msg=get_mail(server)
             print_info(msg)
-            time.sleep(60)
         except:
             print('get_mail exception')
             server=connect_popserver()
