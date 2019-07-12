@@ -9,6 +9,10 @@ import difflib
 from tkinter import *
 from tkinter import ttk
 import _thread
+import logging
+LOG_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
+DATE_FORMAT = "%m-%d-%Y %H:%M:%S %p"
+logging.basicConfig(level=logging.DEBUG,filename='Email_Weixin.log',datefmt=DATE_FORMAT,format=LOG_FORMAT) 
 again=''
 
 def connect_popserver():
@@ -16,7 +20,6 @@ def connect_popserver():
     password='15533317492Huan'
     pop3_server='pop.exmail.qq.com'
     server = poplib.POP3_SSL(pop3_server,port=995)
-    print(server.getwelcome)
     server.user(email)
     server.pass_(password)
     return server
@@ -26,7 +29,7 @@ def get_mail(server):
     index=len(mails)
     resp, lines, octets = server.retr(index)
     msg_content = b'\r\n'.join(lines).decode('utf-8')
-#    server.quit()
+    server.quit()
     msg = Parser().parsestr(msg_content)
     return msg
 
@@ -42,17 +45,9 @@ def get_listbox(master):
     return cb
 
 
-
-def get_tkinter(cb,msg):
-    cb.insert(END,msg)
-
-
-
-	
-
 def login_weixin():
     itchat.auto_login(hotReload=True)
-    print('login success')
+    logging.info('login success')
 	
 def send_error(username,msgs):
 #    user=itchat.search_friends(name=username)
@@ -89,21 +84,22 @@ def print_info(msg,indent=0):
                     # 需要解码Subject字符串:
                     value = decode_str(value).replace(' ','')
                     if value!=again:
+                        logging.info(value)
                         if ('故障' in value or '失败' in value) and ('中六医院' in value or '中大六院' in value):
                             response=send_error('中六问题反馈群',value)
                             again=value
                             if response['BaseResponse']['ErrMsg']=='请求成功':
-                                print(response['BaseResponse']['ErrMsg'])
+                                logging.info(response['BaseResponse']['ErrMsg'])
                             else:
-                                print(response['BaseResponse']['ErrMsg'])
+                                logging.info(response['BaseResponse']['ErrMsg'])
                 else:
-                    print('非法邮件')
+                    logging.info('非法邮件')
 
 if __name__=='__main__':
     try:
         login_weixin()
     except:
-        print('login failure')
+        logging.info('loging weixin failed')
         time.sleep(60)
         login_weixin()
     while True:
@@ -112,7 +108,7 @@ if __name__=='__main__':
             msg=get_mail(server)
             print_info(msg)
         except:
-            print('get_mail exception')
+            logging.info('get_mail exception')
             server=connect_popserver()
             msg=get_mail(server)
             print_info(msg)
