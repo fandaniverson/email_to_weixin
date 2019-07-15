@@ -12,7 +12,7 @@ import _thread
 import logging
 LOG_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
 DATE_FORMAT = "%m-%d-%Y %H:%M:%S %p"
-logging.basicConfig(level=logging.DEBUG,filename='Email_Weixin.log',datefmt=DATE_FORMAT,format=LOG_FORMAT) 
+logging.basicConfig(level=logging.INFO,filename='D:\log\Email_Weixin.log',datefmt=DATE_FORMAT,format=LOG_FORMAT) 
 again=''
 
 def connect_popserver():
@@ -85,6 +85,7 @@ def print_info(msg,indent=0):
                     value = decode_str(value).replace(' ','')
                     if value!=again:
                         logging.info(value)
+                        again=value
                         if ('故障' in value or '失败' in value) and ('中六医院' in value or '中大六院' in value):
                             response=send_error('中六问题反馈群',value)
                             again=value
@@ -92,8 +93,6 @@ def print_info(msg,indent=0):
                                 logging.info(response['BaseResponse']['ErrMsg'])
                             else:
                                 logging.info(response['BaseResponse']['ErrMsg'])
-                else:
-                    logging.info('非法邮件')
 
 if __name__=='__main__':
     try:
